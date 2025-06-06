@@ -1,0 +1,64 @@
+table DadosFinanceiros
+	lineageTag: d1de4883-04c3-4f1d-bc0f-91ebb5f232a2
+
+	column Tipo
+		dataType: string
+		lineageTag: d336eae4-d5a8-451b-a1f9-c7ac6ae11fd2
+		summarizeBy: none
+		sourceColumn: Tipo
+
+		annotation SummarizationSetBy = Automatic
+
+	column Componente
+		dataType: string
+		lineageTag: f3832543-2ca9-4ca8-8139-2947aa2a8ed1
+		summarizeBy: none
+		sourceColumn: Componente
+
+		annotation SummarizationSetBy = Automatic
+
+	column Data
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: c1eb8a9a-5263-4170-af13-48f64791b973
+		summarizeBy: none
+		sourceColumn: Data
+
+		variation Variation
+			isDefault
+			relationship: d05f42d3-af0f-43b7-a68e-179212202076
+			defaultHierarchy: LocalDateTable_73842336-d17d-4fef-a47e-237031701a2a.'Hierarquia de datas'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Valor
+		dataType: double
+		lineageTag: 23abf8e9-83b1-4566-a65a-b7d35d63f5cc
+		summarizeBy: sum
+		sourceColumn: Valor
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition DadosFinanceiros = m
+		mode: import
+		source =
+				let
+				    Fonte = Excel.Workbook(File.Contents("C:\Users\LEAO\OneDrive\Documentos\DSA - Data Science Academy\Cap08\DadosFinanceiros\DadosFinanceiros.xlsx"), null, true),
+				    DadosFinanceiros_Sheet = Fonte{[Item="DadosFinanceiros",Kind="Sheet"]}[Data],
+				    #"Tipo Alterado" = Table.TransformColumnTypes(DadosFinanceiros_Sheet,{{"Column1", type text}, {"Column2", type text}, {"Column3", type text}, {"Column4", type text}, {"Column5", type text}, {"Column6", type text}, {"Column7", type text}, {"Column8", type text}, {"Column9", type text}, {"Column10", type text}, {"Column11", type text}, {"Column12", type text}, {"Column13", type text}, {"Column14", type text}, {"Column15", type text}, {"Column16", type text}, {"Column17", type text}, {"Column18", type text}, {"Column19", type text}, {"Column20", type text}, {"Column21", type text}, {"Column22", type text}, {"Column23", type text}, {"Column24", type text}, {"Column25", type text}, {"Column26", type text}, {"Column27", type text}, {"Column28", type text}, {"Column29", type text}, {"Column30", type text}, {"Column31", type text}, {"Column32", type text}, {"Column33", type text}, {"Column34", type text}, {"Column35", type text}, {"Column36", type text}, {"Column37", type text}, {"Column38", type text}}),
+				    #"Cabeçalhos Promovidos" = Table.PromoteHeaders(#"Tipo Alterado", [PromoteAllScalars=true]),
+				    #"Tipo Alterado1" = Table.TransformColumnTypes(#"Cabeçalhos Promovidos",{{"Tipo", type text}, {"Componente", type text}, {"01/01/2019", Int64.Type}, {"01/02/2019", type number}, {"01/03/2019", type number}, {"01/04/2019", Int64.Type}, {"01/05/2019", type number}, {"01/06/2019", Int64.Type}, {"01/07/2019", Int64.Type}, {"01/08/2019", Int64.Type}, {"01/09/2019", Int64.Type}, {"01/10/2019", Int64.Type}, {"01/11/2019", Int64.Type}, {"01/12/2019", Int64.Type}, {"01/01/2020", Int64.Type}, {"01/02/2020", Int64.Type}, {"01/03/2020", Int64.Type}, {"01/04/2020", Int64.Type}, {"01/05/2020", Int64.Type}, {"01/06/2020", Int64.Type}, {"01/07/2020", Int64.Type}, {"01/08/2020", Int64.Type}, {"01/09/2020", Int64.Type}, {"01/10/2020", Int64.Type}, {"01/11/2020", Int64.Type}, {"01/12/2020", Int64.Type}, {"01/01/2022", Int64.Type}, {"01/02/2022", Int64.Type}, {"01/03/2022", Int64.Type}, {"01/04/2022", Int64.Type}, {"01/05/2022", Int64.Type}, {"01/06/2022", Int64.Type}, {"01/07/2022", Int64.Type}, {"01/08/2022", Int64.Type}, {"01/09/2022", Int64.Type}, {"01/10/2022", Int64.Type}, {"01/11/2022", Int64.Type}, {"01/12/2022", Int64.Type}}),
+				    #"Tabela Transposta" = Table.UnpivotOtherColumns(#"Tipo Alterado1",{"Tipo", "Componente"}, "Data", "Valor"),
+				    #"Tipo Alterado2" = Table.TransformColumnTypes(#"Tabela Transposta",{{"Data", type date}}),
+				    #"Tipo Alterado com Localidade" = Table.TransformColumnTypes(#"Tipo Alterado2", {{"Data", type date}}, "pt-BR")
+				in
+				    #"Tipo Alterado com Localidade"
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

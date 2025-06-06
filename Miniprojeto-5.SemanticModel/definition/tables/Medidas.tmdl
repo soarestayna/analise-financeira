@@ -1,0 +1,43 @@
+table Medidas
+	lineageTag: 8ded2055-5fed-4e73-bd28-c414ba615efa
+
+	measure TotalReceitas = CALCULATE(SUM(DadosFinanceiros[Valor]),DadosFinanceiros[Tipo] = "Receitas")
+		lineageTag: 42fc1e7e-8613-4283-9ff0-5f369c6616f3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure TotalDespesas = CALCULATE(SUM(DadosFinanceiros[Valor]), DadosFinanceiros[Tipo] = "Despesas")
+		lineageTag: 38602326-ad0c-4ccd-957b-f75575d5d003
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Margem de Lucro' = DIVIDE([Lucro], [TotalReceitas],0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 26840a72-2740-4f1f-a9d4-8c156ee7e0ee
+
+	measure Lucro = ```
+			[TotalReceitas] - [TotalDespesas] 
+			```
+		lineageTag: 68276dfe-b999-4bbe-a6ab-0c8d434175d0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Coluna 1'
+		dataType: string
+		lineageTag: 4042cbf7-ff9a-4bf8-90e8-caa44236628a
+		summarizeBy: none
+		sourceColumn: Coluna 1
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Medidas = m
+		mode: import
+		source =
+				let
+				    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Coluna 1" = _t]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"Coluna 1", type text}})
+				in
+				    #"Tipo Alterado"
+
+	annotation PBI_ResultType = Table
+
